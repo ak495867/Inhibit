@@ -1,0 +1,79 @@
+name: inhibit_real_sp500_current_snapshot
+seed: 2026
+
+universe:
+  min_history_bars: 252
+  max_positions: 50
+  long_only: true
+  min_price: 5.0
+  min_dollar_volume: 5000000
+
+schedule:
+  frequency: monthly
+  rebalance_weekday: 0
+  execution_delay_bars: 1
+  information_buffer_bars: 1
+  label_horizon_bars: 21
+
+features:
+  winsorize_quantiles: [0.01, 0.99]
+  standardize_cross_section: true
+  neutralize: []
+  include: [momentum_12_1, reversal_1, volatility_63, dollar_volume_21]
+  discovery:
+    enabled: true
+    max_candidates: 100
+    max_depth: 2
+    min_assets_per_date: 100
+    min_observations: 252
+    complexity_penalty: 0.004
+    fdr_q: 0.05
+    stability_threshold: 0.75
+    custom_rules: []
+
+validation:
+  train_bars: 756
+  validation_bars: 126
+  test_bars: 126
+  step_bars: 126
+  embargo_bars: 21
+  n_bootstrap: 1000
+  bootstrap_block_length: 21
+  min_test_periods: 3
+  holdout_fraction: 0.15
+
+portfolio:
+  gross_leverage: 1.0
+  max_position_weight: 0.04
+  max_turnover: 0.25
+  cash_rate_annualized: 0.0
+  rebalance_tolerance: 0.002
+
+execution:
+  handler: high_volatility_stress
+  commission_bps: 1.5
+  spread_bps: 6.0
+  impact_bps: 15.0
+  impact_exponent: 0.60
+  stress_volatility_threshold: 0.012
+  stress_spread_multiplier: 2.5
+  stress_impact_multiplier: 4.0
+  stress_participation_multiplier: 0.75
+  stress_fill_probability_floor: 0.20
+  stress_fill_probability_sensitivity: 0.60
+  tail_risk_threshold: 0.04
+  tail_spread_multiplier: 5.0
+  tail_impact_multiplier: 8.0
+  tail_liquidity_multiplier: 0.85
+  tail_fill_probability_floor: 0.10
+  borrow_bps_annualized: 300.0
+  participation_rate: 0.05
+  fill_probability: 0.80
+  max_fill_bars: 3
+  lot_size: 1
+  allow_partial_fills: true
+  price_field: close
+
+research:
+  allow_zero_cost_diagnostic: false
+  output_metrics: [annual_return, annual_volatility, sharpe, max_drawdown, turnover, fill_ratio]

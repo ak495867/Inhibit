@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.py[cod]
+runs/
+*.egg-info/
+.DS_Store
+
+# Local data can be large or license-restricted; commit schemas and examples, not raw feeds.
+data/*
+!data/.gitkeep
