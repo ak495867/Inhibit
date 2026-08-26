@@ -1,5 +1,12 @@
 # Inhibit
 
+[![CI](https://github.com/ak495867/Inhibit/actions/workflows/ci.yml/badge.svg )](https://github.com/ak495867/Inhibit/actions/workflows/ci.yml )
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB.svg?logo=python&logoColor=white )](https://www.python.org/ )
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg )](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-pytest-brightgreen.svg )](reports/ci/test_results.md)
+[![Code style: Ruff](https://img.shields.io/badge/code%20style-Ruff-D7FF64.svg )](https://docs.astral.sh/ruff/ )
+
+
 Inhibit is a production-oriented, local-first research engine for adaptive quantitative factor models and tail-risk-aware execution research. It is built to make false edge difficult to manufacture: data availability timestamps are enforced, chronological validation is the default, trading frictions are explicit, partial fills are modeled, liquidity dry-ups and spread widening can be stressed, and every run emits a reproducibility manifest.
 
 > Inhibit is research software. It does not guarantee profits, eliminate model risk, or provide personalized financial advice. Use paper trading, independent review, and appropriate controls before considering live deployment.
