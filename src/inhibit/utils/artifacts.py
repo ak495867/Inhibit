@@ -18,7 +18,10 @@ def sha256_file(path: str | Path) -> str:
 def artifact_manifest(directory: str | Path) -> dict[str, dict[str, int | str]]:
     root = Path(directory)
     return {
-        str(path.relative_to(root)): {"sha256": sha256_file(path), "bytes": path.stat().st_size}
+        str(path.relative_to(root)): {
+            "sha256": sha256_file(path),
+            "bytes": path.stat().st_size,
+        }
         for path in sorted(root.rglob("*"))
         if path.is_file() and path.name != "manifest.json"
     }
@@ -31,4 +34,8 @@ def runtime_manifest() -> dict[str, object]:
             packages[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:
             packages[name] = None
-    return {"python": sys.version, "platform": platform.platform(), "packages": packages}
+    return {
+        "python": sys.version,
+        "platform": platform.platform(),
+        "packages": packages,
+    }

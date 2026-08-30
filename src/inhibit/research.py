@@ -47,7 +47,9 @@ class ResearchRunner:
         membership_audit: dict[str, int] = {}
         if self.config.universe.membership_path:
             membership = load_membership(self.config.universe.membership_path)
-            prices, membership_audit = apply_point_in_time_membership(prices, membership)
+            prices, membership_audit = apply_point_in_time_membership(
+                prices, membership
+            )
         prices, universe_audit = apply_universe_filters(prices, self.config.universe)
         if prices.empty:
             raise ValueError("universe filters removed every symbol")
@@ -58,7 +60,9 @@ class ResearchRunner:
             winsorize_quantiles=self.config.features.winsorize_quantiles,
             standardize_cross_section=self.config.features.standardize_cross_section,
         )
-        labeled = add_forward_return_label(features, self.config.schedule.label_horizon_bars)
+        labeled = add_forward_return_label(
+            features, self.config.schedule.label_horizon_bars
+        )
         splits = walk_forward_splits(
             labeled["timestamp"],
             self.config.validation.train_bars,
@@ -77,7 +81,9 @@ class ResearchRunner:
             assert_no_overlap(split)
         custom_rules = self._custom_rules()
         discovery_engine = AdaptiveFactorDiscovery(
-            max_candidates=int(self.config.features.discovery.get("max_candidates", 100)),
+            max_candidates=int(
+                self.config.features.discovery.get("max_candidates", 100)
+            ),
             max_depth=int(self.config.features.discovery.get("max_depth", 2)),
             complexity_penalty=float(
                 self.config.features.discovery.get("complexity_penalty", 0.002)
@@ -86,7 +92,9 @@ class ResearchRunner:
             custom_rules=custom_rules,
             fdr_q=float(self.config.features.discovery.get("fdr_q", 0.05)),
         )
-        discovery = discovery_engine.discover(labeled, list(self.config.features.include), splits)
+        discovery = discovery_engine.discover(
+            labeled, list(self.config.features.include), splits
+        )
         selected = list(discovery.selected_features)
         if selected:
             rule_map = {rule.name: rule for rule in custom_rules}
@@ -96,7 +104,11 @@ class ResearchRunner:
                 else:
                     labeled[name] = AdaptiveFactorDiscovery._evaluate_expression(
                         labeled,
-                        next(item.expression for item in discovery.candidates if item.name == name),
+                        next(
+                            item.expression
+                            for item in discovery.candidates
+                            if item.name == name
+                        ),
                     )
         factor_set = selected or list(self.config.features.include)
         targets: list[pd.DataFrame] = []
@@ -131,7 +143,9 @@ class ResearchRunner:
             else pd.DataFrame(columns=["timestamp", "symbol", "weight"])
         )
         test_times = pd.Index(
-            pd.concat([labeled.iloc[split.test]["timestamp"] for split in splits]).unique()
+            pd.concat(
+                [labeled.iloc[split.test]["timestamp"] for split in splits]
+            ).unique()
         )
         test_bars = prices[prices["timestamp"].isin(test_times)].copy()
         execution = ExecutionSimulator(
@@ -171,7 +185,14 @@ class ResearchRunner:
             output / "candidates.csv", index=False
         )
         manifest = self._manifest(
-            input_path, prices, audit, discovery, splits, factor_set, split_results, metrics
+            input_path,
+            prices,
+            audit,
+            discovery,
+            splits,
+            factor_set,
+            split_results,
+            metrics,
         )
         manifest["universe_audit"] = universe_audit
         manifest["membership_audit"] = membership_audit
@@ -182,7 +203,9 @@ class ResearchRunner:
         manifest["runtime"] = runtime_manifest()
         manifest["duration_seconds"] = time() - started_at
         manifest["artifacts"] = artifact_manifest(output)
-        (output / "manifest.json").write_text(json.dumps(manifest, indent=2, default=str))
+        (output / "manifest.json").write_text(
+            json.dumps(manifest, indent=2, default=str)
+        )
         return manifest
 
     def _manifest(

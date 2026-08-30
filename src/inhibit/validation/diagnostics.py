@@ -20,13 +20,20 @@ def regime_performance(
     if len(valid) < 20:
         return {}
     valid["regime"] = pd.qcut(
-        valid["realized_vol"], q=3, labels=["low_vol", "mid_vol", "high_vol"], duplicates="drop"
+        valid["realized_vol"],
+        q=3,
+        labels=["low_vol", "mid_vol", "high_vol"],
+        duplicates="drop",
     )
     output: dict[str, dict[str, float]] = {}
     for regime, group in valid.groupby("regime", observed=True):
         returns = group["return"]
         low, high = block_bootstrap_metric_interval(
-            returns, metric="sharpe", n_bootstrap=n_bootstrap, block_length=block_length, seed=seed
+            returns,
+            metric="sharpe",
+            n_bootstrap=n_bootstrap,
+            block_length=block_length,
+            seed=seed,
         )
         output[str(regime)] = {
             "observations": int(len(group)),

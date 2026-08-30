@@ -1,0 +1,23 @@
+{
+  "input": "data/sp500_yfinance_2015_2026.csv",
+  "output": "data/sp500_yfinance_2015_2026_clean.csv",
+  "input_rows": 1409755,
+  "output_rows": 1409754,
+  "dropped_rows": 1,
+  "dropped_records": [
+    {
+      "symbol": "HUBB",
+      "timestamp": "2021-05-05 00:00:00+00:00",
+      "open": 195.97999572753903,
+      "high": 198.63999938964844,
+      "low": 196.2100067138672,
+      "close": 198.1300048828125,
+      "volume": 127234.0,
+      "adj_close": 182.2831115722656,
+      "currency": "USD",
+      "available_at": "2021-05-05 00:00:00+00:00",
+      "source": "yfinance-current-sp500-snapshot"
+    }
+  ],
+  "policy": "Drop invalid OHLCV rows only; no price interpolation or forward filling."
+}

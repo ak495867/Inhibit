@@ -119,7 +119,10 @@ class InhibitConfig:
             raise ValueError("stress_volatility_threshold must be positive")
         if self.execution.tail_risk_threshold <= 0:
             raise ValueError("tail_risk_threshold must be positive")
-        if self.execution.tail_spread_multiplier < 0 or self.execution.tail_impact_multiplier < 0:
+        if (
+            self.execution.tail_spread_multiplier < 0
+            or self.execution.tail_impact_multiplier < 0
+        ):
             raise ValueError("tail cost multipliers cannot be negative")
         if not 0 < self.execution.tail_liquidity_multiplier <= 1:
             raise ValueError("tail_liquidity_multiplier must be in (0, 1]")
@@ -143,7 +146,9 @@ class InhibitConfig:
                 self.execution.impact_bps,
             )
         ):
-            raise ValueError("zero-friction runs require allow_zero_cost_diagnostic=true")
+            raise ValueError(
+                "zero-friction runs require allow_zero_cost_diagnostic=true"
+            )
 
 
 def _construct(cls: type[Any], payload: dict[str, Any] | None) -> Any:

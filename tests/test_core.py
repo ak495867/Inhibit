@@ -40,7 +40,9 @@ def test_schema_rejects_missing_columns() -> None:
 
 
 def test_feature_engine_lags_and_audits() -> None:
-    frame, audit = FeatureEngine().build(price_fixture(), ["reversal_1"], information_buffer_bars=1)
+    frame, audit = FeatureEngine().build(
+        price_fixture(), ["reversal_1"], information_buffer_bars=1
+    )
     assert audit.passed
     assert frame["reversal_1"].iloc[:3].isna().all()
 
@@ -53,7 +55,9 @@ def test_feature_engine_rejects_future_availability() -> None:
 
 
 def test_walk_forward_splits_are_disjoint() -> None:
-    timestamps = pd.Series(pd.date_range("2020-01-01", periods=1000, freq="B", tz="UTC"))
+    timestamps = pd.Series(
+        pd.date_range("2020-01-01", periods=1000, freq="B", tz="UTC")
+    )
     splits = walk_forward_splits(timestamps, 500, 100, 100, 100, 20, 10)
     assert len(splits) == 3
     for split in splits:
@@ -77,5 +81,7 @@ def test_execution_models_partial_fills_and_costs() -> None:
         seed=1,
     ).run(bars, targets)
     assert not result.equity.empty
-    assert result.fills["filled_shares"].iloc[0] < result.fills["requested_shares"].iloc[0]
+    assert (
+        result.fills["filled_shares"].iloc[0] < result.fills["requested_shares"].iloc[0]
+    )
     assert result.fills["total_cost"].iloc[0] > 0

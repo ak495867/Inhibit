@@ -34,7 +34,9 @@ def test_custom_multi_factor_rule_is_evaluated_and_selected() -> None:
     result = AdaptiveFactorDiscovery(
         max_candidates=20, max_depth=1, complexity_penalty=0.0, custom_rules=[rule]
     ).discover(frame, ["factor_a", "factor_b"], splits)
-    custom = next(candidate for candidate in result.candidates if candidate.name == "custom_blend")
+    custom = next(
+        candidate for candidate in result.candidates if candidate.name == "custom_blend"
+    )
     assert custom.expression == "0.5*factor_a + 0.5*factor_b"
     assert custom.stability == 1.0
     assert custom.mean_rank_ic > 0.9

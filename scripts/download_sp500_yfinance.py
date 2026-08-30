@@ -90,7 +90,8 @@ def download(
         except Exception:
             failed.extend(batch)
         print(
-            f"processed {min(offset + batch_size, len(symbols))}/{len(symbols)} symbols", flush=True
+            f"processed {min(offset + batch_size, len(symbols))}/{len(symbols)} symbols",
+            flush=True,
         )
     if not records:
         raise RuntimeError("yfinance returned no usable batches")
@@ -128,7 +129,9 @@ def main() -> None:
     if args.batch_size < 1:
         raise ValueError("batch-size must be positive")
     universe = load_symbols()
-    frame, failed = download(universe["Symbol"].tolist(), args.start, args.end, args.batch_size)
+    frame, failed = download(
+        universe["Symbol"].tolist(), args.start, args.end, args.batch_size
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.universe_output.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(args.output, index=False)
@@ -145,7 +148,10 @@ def main() -> None:
         ),
     }
     args.universe_output.write_text(
-        json.dumps({"metadata": metadata, "constituents": universe.to_dict("records")}, indent=2)
+        json.dumps(
+            {"metadata": metadata, "constituents": universe.to_dict("records")},
+            indent=2,
+        )
     )
     print(
         json.dumps(

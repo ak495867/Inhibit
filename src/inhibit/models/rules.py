@@ -41,11 +41,15 @@ class MultiFactorCombinationRule:
         missing = sorted(set(self.factors) - set(frame.columns))
         if missing:
             raise ValueError(f"custom rule {self.name!r} missing factors: {missing}")
-        values = frame[list(self.factors)].astype(float).replace([np.inf, -np.inf], np.nan)
+        values = (
+            frame[list(self.factors)].astype(float).replace([np.inf, -np.inf], np.nan)
+        )
         if self.normalize:
             for factor in self.factors:
                 values[factor] = (
-                    values[factor].groupby(frame["timestamp"], sort=False).transform(self._zscore)
+                    values[factor]
+                    .groupby(frame["timestamp"], sort=False)
+                    .transform(self._zscore)
                 )
         result = sum(
             values[factor] * weight

@@ -24,7 +24,10 @@ class CrossSectionalRidge:
         self.feature_names: tuple[str, ...] = ()
 
     def fit(
-        self, frame: pd.DataFrame, feature_names: list[str], label: str = "forward_return"
+        self,
+        frame: pd.DataFrame,
+        feature_names: list[str],
+        label: str = "forward_return",
     ) -> ModelFit:
         usable = frame.dropna(subset=[*feature_names, label]).copy()
         if len(usable) < max(50, len(feature_names) * 10):
@@ -53,10 +56,16 @@ class CrossSectionalRidge:
         return result
 
     def score_to_weights(
-        self, frame: pd.DataFrame, prediction: pd.Series, max_positions: int, max_weight: float
+        self,
+        frame: pd.DataFrame,
+        prediction: pd.Series,
+        max_positions: int,
+        max_weight: float,
     ) -> pd.DataFrame:
         rows: list[dict[str, object]] = []
-        for timestamp, group in frame.assign(prediction=prediction).groupby("timestamp", sort=True):
+        for timestamp, group in frame.assign(prediction=prediction).groupby(
+            "timestamp", sort=True
+        ):
             group = group.dropna(subset=["prediction"])
             group = group.sort_values("prediction", ascending=False).head(max_positions)
             if group.empty:
