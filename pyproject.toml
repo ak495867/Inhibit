@@ -21,7 +21,7 @@ dependencies = [
 data = ["yfinance>=0.2.40", "pyarrow>=15.0"]
 research = ["scipy>=1.12", "statsmodels>=0.14"]
 dev = ["pytest>=8.0", "ruff>=0.6", "mypy>=1.10"]
-all = ["yfinance>=0.2.40", "pyarrow>=15.0", "scipy>=1.12", "statsmodels>=0.14", "pytest>=8.0", "ruff=0.15.20", "mypy>=1.10"]
+all = ["yfinance>=0.2.40", "pyarrow>=15.0", "scipy>=1.12", "statsmodels>=0.14", "pytest>=8.0", "ruff==0.15.20", "mypy>=1.10"]
 
 [project.scripts]
 inhibit = "inhibit.cli.main:main"
