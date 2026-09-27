@@ -27,9 +27,9 @@ def test_high_volatility_handler_increases_slippage_and_reduces_participation() 
         {"timestamp": [bars["timestamp"].iloc[0]], "symbol": ["HV"], "weight": [0.5]}
     )
     portfolio = PortfolioConfig(max_position_weight=1.0, max_turnover=1.0)
-    default = ExecutionSimulator(
-        ExecutionConfig(fill_probability=1.0), portfolio, seed=7
-    ).run(bars, targets)
+    default = ExecutionSimulator(ExecutionConfig(fill_probability=1.0), portfolio, seed=7).run(
+        bars, targets
+    )
     stress_config = ExecutionConfig(
         fill_probability=1.0,
         handler="high_volatility_stress",
@@ -65,9 +65,9 @@ def test_tail_risk_handler_collapses_liquidity_and_widens_spread() -> None:
         tail_liquidity_multiplier=0.95,
         tail_fill_probability_floor=1.0,
     )
-    result = ExecutionSimulator(
-        config, PortfolioConfig(max_position_weight=1.0), seed=7
-    ).run(bars, targets)
+    result = ExecutionSimulator(config, PortfolioConfig(max_position_weight=1.0), seed=7).run(
+        bars, targets
+    )
     fill = (
         result.fills.loc[result.fills["reason"] == "filled"]
         .sort_values("tail_risk_factor")

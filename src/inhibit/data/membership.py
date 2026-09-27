@@ -13,9 +13,7 @@ def load_membership(path: str | Path) -> pd.DataFrame:
     if missing:
         raise ValueError(f"membership file missing columns: {sorted(missing)}")
     membership["symbol"] = membership["symbol"].astype(str)
-    membership["effective_from"] = pd.to_datetime(
-        membership["effective_from"], utc=True
-    )
+    membership["effective_from"] = pd.to_datetime(membership["effective_from"], utc=True)
     membership["effective_to"] = pd.to_datetime(membership["effective_to"], utc=True)
     if membership["effective_from"].isna().any():
         raise ValueError("membership effective_from contains invalid timestamps")
@@ -23,12 +21,8 @@ def load_membership(path: str | Path) -> pd.DataFrame:
         membership["effective_to"].notna()
         & (membership["effective_to"] <= membership["effective_from"])
     ).any():
-        raise ValueError(
-            "membership intervals must have effective_to after effective_from"
-        )
-    for symbol, group in membership.sort_values(["symbol", "effective_from"]).groupby(
-        "symbol"
-    ):
+        raise ValueError("membership intervals must have effective_to after effective_from")
+    for symbol, group in membership.sort_values(["symbol", "effective_from"]).groupby("symbol"):
         prior_to = group["effective_to"].shift(1)
         if ((prior_to.notna()) & (group["effective_from"] < prior_to)).any():
             raise ValueError(f"overlapping membership intervals for {symbol}")

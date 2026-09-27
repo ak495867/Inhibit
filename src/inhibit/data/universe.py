@@ -12,9 +12,7 @@ def apply_universe_filters(
     work["dollar_volume"] = work["close"] * work["volume"]
     work["history_count_before"] = work.groupby("symbol", sort=False).cumcount()
     work["prior_close"] = work.groupby("symbol", sort=False)["close"].shift(1)
-    work["prior_dollar_volume"] = work.groupby("symbol", sort=False)[
-        "dollar_volume"
-    ].shift(1)
+    work["prior_dollar_volume"] = work.groupby("symbol", sort=False)["dollar_volume"].shift(1)
     eligible = (
         (work["history_count_before"] >= config.min_history_bars)
         & (work["prior_close"] >= config.min_price)

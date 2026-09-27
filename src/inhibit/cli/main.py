@@ -16,9 +16,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="inhibit", description="Leakage-safe adaptive factor research"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
-    inspect = subparsers.add_parser(
-        "inspect", help="validate and summarize a local dataset"
-    )
+    inspect = subparsers.add_parser("inspect", help="validate and summarize a local dataset")
     inspect.add_argument("--input", required=True)
     inspect.add_argument("--publication-lag", default="0D")
     validate = subparsers.add_parser(
@@ -34,9 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--config", required=True)
     run.add_argument("--input", required=True)
     run.add_argument("--output", required=True)
-    verify = subparsers.add_parser(
-        "verify", help="verify a run manifest and its artifacts"
-    )
+    verify = subparsers.add_parser("verify", help="verify a run manifest and its artifacts")
     verify.add_argument("--run", required=True)
     verify.add_argument("--input")
     return parser
@@ -58,11 +54,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1 if issues else 0
     if args.command == "validate-config":
         config = load_config(args.config)
-        print(
-            json.dumps(
-                {"valid": True, "name": config.name, "seed": config.seed}, indent=2
-            )
-        )
+        print(json.dumps({"valid": True, "name": config.name, "seed": config.seed}, indent=2))
         return 0
     if args.command == "fetch-yfinance":
         frame = load_yfinance(args.symbols, args.start, args.end)

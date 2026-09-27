@@ -10,9 +10,7 @@ class ArtifactVerificationError(ValueError):
     pass
 
 
-def verify_run(
-    run_dir: str | Path, input_path: str | Path | None = None
-) -> dict[str, object]:
+def verify_run(run_dir: str | Path, input_path: str | Path | None = None) -> dict[str, object]:
     root = Path(run_dir)
     manifest_path = root / "manifest.json"
     if not manifest_path.exists():
