@@ -16,11 +16,13 @@ def build_parser() -> argparse.ArgumentParser:
         prog="inhibit", description="Leakage-safe adaptive factor research"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
-    inspect = subparsers.add_parser(
-        "inspect", help="validate and summarize a local dataset"
-    )
+    inspect = subparsers.add_parser("inspect", help="validate and summarize a local dataset")
     inspect.add_argument("--input", required=True)
     inspect.add_argument("--publication-lag", default="0D")
+    validate = subparsers.add_parser(
+        "validate-config", help="validate a YAML research configuration"
+    )
+    validate.add_argument("--config", required=True)
     fetch = subparsers.add_parser("fetch-yfinance", help="download public OHLCV data")
     fetch.add_argument("--symbols", nargs="+", required=True)
     fetch.add_argument("--start", required=True)
@@ -30,9 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--config", required=True)
     run.add_argument("--input", required=True)
     run.add_argument("--output", required=True)
-    verify = subparsers.add_parser(
-        "verify", help="verify a run manifest and its artifacts"
-    )
+    verify = subparsers.add_parser("verify", help="verify a run manifest and its artifacts")
     verify.add_argument("--run", required=True)
     verify.add_argument("--input")
     return parser
@@ -52,9 +52,14 @@ def main(argv: list[str] | None = None) -> int:
         }
         print(json.dumps(summary, indent=2))
         return 1 if issues else 0
+    if args.command == "validate-config":
+        config = load_config(args.config)
+        print(json.dumps({"valid": True, "name": config.name, "seed": config.seed}, indent=2))
+        return 0
     if args.command == "fetch-yfinance":
         frame = load_yfinance(args.symbols, args.start, args.end)
         output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
         if output.suffix.lower() in {".parquet", ".pq"}:
             frame.to_parquet(output, index=False)
         else:

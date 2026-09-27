@@ -58,9 +58,7 @@ class FeatureEngine:
         winsorize_quantiles: tuple[float, float] = (0.01, 0.99),
         standardize_cross_section: bool = True,
     ) -> tuple[pd.DataFrame, FeatureAudit]:
-        frame = (
-            prices.sort_values(["symbol", "timestamp"]).reset_index(drop=True).copy()
-        )
+        frame = prices.sort_values(["symbol", "timestamp"]).reset_index(drop=True).copy()
         if "available_at" not in frame:
             raise LeakageError("available_at is required for feature generation")
         if information_buffer_bars < 0:
@@ -84,12 +82,8 @@ class FeatureEngine:
         source_available = frame.groupby("symbol", sort=False)["available_at"].shift(
             information_buffer_bars or 0
         )
-        availability_violations = int(
-            (source_available > frame["timestamp"]).fillna(False).sum()
-        )
-        finite_values = int(
-            np.isfinite(frame[list(factor_names)].to_numpy(dtype=float)).sum()
-        )
+        availability_violations = int((source_available > frame["timestamp"]).fillna(False).sum())
+        finite_values = int(np.isfinite(frame[list(factor_names)].to_numpy(dtype=float)).sum())
         future_price_violations = self._future_price_violations(
             frame, factor_names, source_available
         )
@@ -144,9 +138,7 @@ class FeatureEngine:
             values = frame[name].notna() & source_available.notna()
             if values.any():
                 violations += int(
-                    (
-                        source_available.loc[values] > frame.loc[values, "timestamp"]
-                    ).sum()
+                    (source_available.loc[values] > frame.loc[values, "timestamp"]).sum()
                 )
         return violations
 
@@ -157,7 +149,5 @@ def add_forward_return_label(frame: pd.DataFrame, horizon_bars: int) -> pd.DataF
     result = frame.sort_values(["symbol", "timestamp"]).copy()
     future_close = result.groupby("symbol", sort=False)["close"].shift(-horizon_bars)
     result["forward_return"] = future_close / result["close"] - 1.0
-    result["label_at"] = result.groupby("symbol", sort=False)["timestamp"].shift(
-        -horizon_bars
-    )
+    result["label_at"] = result.groupby("symbol", sort=False)["timestamp"].shift(-horizon_bars)
     return result

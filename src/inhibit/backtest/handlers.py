@@ -62,22 +62,11 @@ class HighVolatilityExecutionHandler(ExecutionHandler):
             raise ValueError("volatility threshold must be positive")
         if not 0 < fill_probability_floor <= 1:
             raise ValueError("fill probability floor must be in (0, 1]")
-        if (
-            spread_multiplier < 0
-            or impact_multiplier < 0
-            or not 0 < participation_multiplier <= 1
-        ):
+        if spread_multiplier < 0 or impact_multiplier < 0 or not 0 < participation_multiplier <= 1:
             raise ValueError("stress multipliers have invalid values")
-        if (
-            tail_threshold <= 0
-            or tail_spread_multiplier < 0
-            or tail_impact_multiplier < 0
-        ):
+        if tail_threshold <= 0 or tail_spread_multiplier < 0 or tail_impact_multiplier < 0:
             raise ValueError("tail-risk parameters have invalid values")
-        if (
-            not 0 < tail_liquidity_multiplier <= 1
-            or not 0 < tail_fill_probability_floor <= 1
-        ):
+        if not 0 < tail_liquidity_multiplier <= 1 or not 0 < tail_fill_probability_floor <= 1:
             raise ValueError("tail liquidity and fill floors have invalid values")
         self.threshold = threshold
         self.spread_multiplier = spread_multiplier
@@ -96,9 +85,7 @@ class HighVolatilityExecutionHandler(ExecutionHandler):
         realized_value = bar.get("realized_volatility", 0.0)
         realized = 0.0 if pd.isna(realized_value) else float(realized_value)
         range_vol = (
-            max(float(bar["high"]) - float(bar["low"]), 0.0)
-            / max(float(bar["close"]), 1e-12)
-            / 2
+            max(float(bar["high"]) - float(bar["low"]), 0.0) / max(float(bar["close"]), 1e-12) / 2
         )
         volatility_level = max(realized, range_vol)
         stress_factor = max(volatility_level / self.threshold - 1.0, 0.0)
@@ -166,9 +153,7 @@ def _fill_with_parameters(
     else:
         filled = np.sign(requested) * min(abs(requested), max_shares)
     if config.lot_size > 1:
-        filled = (
-            np.sign(filled) * np.floor(abs(filled) / config.lot_size) * config.lot_size
-        )
+        filled = np.sign(filled) * np.floor(abs(filled) / config.lot_size) * config.lot_size
     if filled == 0:
         return Fill(
             symbol,

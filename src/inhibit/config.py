@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from math import isfinite
 from pathlib import Path
 from typing import Any
 
@@ -103,26 +104,109 @@ class InhibitConfig:
     research: ResearchConfig = field(default_factory=ResearchConfig)
 
     def validate(self) -> None:
+        numeric_values = {
+            "universe.min_price": self.universe.min_price,
+            "universe.min_dollar_volume": self.universe.min_dollar_volume,
+            "portfolio.gross_leverage": self.portfolio.gross_leverage,
+            "portfolio.max_position_weight": self.portfolio.max_position_weight,
+            "portfolio.max_turnover": self.portfolio.max_turnover,
+            "portfolio.rebalance_tolerance": self.portfolio.rebalance_tolerance,
+            "execution.commission_bps": self.execution.commission_bps,
+            "execution.spread_bps": self.execution.spread_bps,
+            "execution.impact_bps": self.execution.impact_bps,
+            "execution.impact_exponent": self.execution.impact_exponent,
+            "execution.stress_volatility_threshold": self.execution.stress_volatility_threshold,
+            "execution.stress_spread_multiplier": self.execution.stress_spread_multiplier,
+            "execution.stress_impact_multiplier": self.execution.stress_impact_multiplier,
+            "execution.stress_participation_multiplier": (
+                self.execution.stress_participation_multiplier
+            ),
+            "execution.stress_fill_probability_floor": self.execution.stress_fill_probability_floor,
+            "execution.stress_fill_probability_sensitivity": (
+                self.execution.stress_fill_probability_sensitivity
+            ),
+            "execution.tail_risk_threshold": self.execution.tail_risk_threshold,
+            "execution.tail_spread_multiplier": self.execution.tail_spread_multiplier,
+            "execution.tail_impact_multiplier": self.execution.tail_impact_multiplier,
+            "execution.tail_liquidity_multiplier": self.execution.tail_liquidity_multiplier,
+            "execution.tail_fill_probability_floor": self.execution.tail_fill_probability_floor,
+            "execution.borrow_bps_annualized": self.execution.borrow_bps_annualized,
+            "execution.participation_rate": self.execution.participation_rate,
+            "execution.fill_probability": self.execution.fill_probability,
+            "validation.holdout_fraction": self.validation.holdout_fraction,
+            "portfolio.cash_rate_annualized": self.portfolio.cash_rate_annualized,
+        }
+        for field_name, value in numeric_values.items():
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not isfinite(value)
+            ):
+                raise ValueError(f"{field_name} must be a finite number")
         if self.schedule.execution_delay_bars < 1:
             raise ValueError("execution_delay_bars must be at least 1")
         if self.schedule.information_buffer_bars < 0:
             raise ValueError("information_buffer_bars cannot be negative")
+        if self.schedule.label_horizon_bars < 1:
+            raise ValueError("label_horizon_bars must be positive")
+        if not 0 <= self.schedule.rebalance_weekday <= 6:
+            raise ValueError("rebalance_weekday must be between 0 and 6")
+        if self.universe.min_history_bars < 1:
+            raise ValueError("min_history_bars must be positive")
+        if self.universe.min_price < 0 or self.universe.min_dollar_volume < 0:
+            raise ValueError("universe minimums cannot be negative")
+        if not self.features.include or any(not name for name in self.features.include):
+            raise ValueError("features.include must contain at least one feature name")
+        if len(set(self.features.include)) != len(self.features.include):
+            raise ValueError("features.include cannot contain duplicate names")
+        low_quantile, high_quantile = self.features.winsorize_quantiles
+        if not 0 <= low_quantile < high_quantile <= 1:
+            raise ValueError("winsorize_quantiles must satisfy 0 <= low < high <= 1")
+        if (
+            min(
+                self.validation.train_bars,
+                self.validation.validation_bars,
+                self.validation.test_bars,
+                self.validation.step_bars,
+                self.validation.min_test_periods,
+            )
+            < 1
+        ):
+            raise ValueError("validation window sizes and min_test_periods must be positive")
+        if self.validation.embargo_bars < 0:
+            raise ValueError("embargo_bars cannot be negative")
+        if not 0 < self.validation.holdout_fraction < 1:
+            raise ValueError("holdout_fraction must be in (0, 1)")
         if not 0 < self.execution.participation_rate <= 1:
             raise ValueError("participation_rate must be in (0, 1]")
         if not 0 <= self.execution.fill_probability <= 1:
             raise ValueError("fill_probability must be in [0, 1]")
+        if (
+            min(self.execution.commission_bps, self.execution.spread_bps, self.execution.impact_bps)
+            < 0
+        ):
+            raise ValueError("execution costs cannot be negative")
         if self.execution.impact_exponent <= 0:
             raise ValueError("impact_exponent must be positive")
         if self.execution.handler not in {"default", "high_volatility_stress"}:
             raise ValueError("handler must be default or high_volatility_stress")
         if self.execution.stress_volatility_threshold <= 0:
             raise ValueError("stress_volatility_threshold must be positive")
+        if (
+            min(
+                self.execution.stress_spread_multiplier,
+                self.execution.stress_impact_multiplier,
+                self.execution.stress_participation_multiplier,
+                self.execution.stress_fill_probability_sensitivity,
+            )
+            < 0
+        ):
+            raise ValueError("stress multipliers and sensitivity cannot be negative")
+        if not 0 < self.execution.stress_fill_probability_floor <= 1:
+            raise ValueError("stress_fill_probability_floor must be in (0, 1]")
         if self.execution.tail_risk_threshold <= 0:
             raise ValueError("tail_risk_threshold must be positive")
-        if (
-            self.execution.tail_spread_multiplier < 0
-            or self.execution.tail_impact_multiplier < 0
-        ):
+        if self.execution.tail_spread_multiplier < 0 or self.execution.tail_impact_multiplier < 0:
             raise ValueError("tail cost multipliers cannot be negative")
         if not 0 < self.execution.tail_liquidity_multiplier <= 1:
             raise ValueError("tail_liquidity_multiplier must be in (0, 1]")
@@ -130,6 +214,8 @@ class InhibitConfig:
             raise ValueError("tail_fill_probability_floor must be in (0, 1]")
         if self.universe.max_positions < 1:
             raise ValueError("max_positions must be positive")
+        if self.execution.max_fill_bars < 1 or self.execution.lot_size < 1:
+            raise ValueError("max_fill_bars and lot_size must be positive")
         if self.validation.n_bootstrap < 100:
             raise ValueError("n_bootstrap must be at least 100")
         if self.validation.bootstrap_block_length < 1:
@@ -138,6 +224,8 @@ class InhibitConfig:
             raise ValueError("gross_leverage must be positive")
         if self.portfolio.max_position_weight <= 0:
             raise ValueError("max_position_weight must be positive")
+        if self.portfolio.max_turnover < 0 or self.portfolio.rebalance_tolerance < 0:
+            raise ValueError("portfolio turnover and tolerance cannot be negative")
         if not self.research.allow_zero_cost_diagnostic and all(
             value == 0
             for value in (
@@ -146,9 +234,7 @@ class InhibitConfig:
                 self.execution.impact_bps,
             )
         ):
-            raise ValueError(
-                "zero-friction runs require allow_zero_cost_diagnostic=true"
-            )
+            raise ValueError("zero-friction runs require allow_zero_cost_diagnostic=true")
 
 
 def _construct(cls: type[Any], payload: dict[str, Any] | None) -> Any:

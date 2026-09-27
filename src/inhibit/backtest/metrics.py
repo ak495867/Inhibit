@@ -18,9 +18,7 @@ def performance_metrics(
             "turnover": float("nan"),
             "fill_ratio": float("nan"),
         }
-    series = (
-        equity.sort_values("timestamp").set_index("timestamp")["equity"].astype(float)
-    )
+    series = equity.sort_values("timestamp").set_index("timestamp")["equity"].astype(float)
     returns = series.pct_change().replace([np.inf, -np.inf], np.nan).dropna()
     years = max(len(returns) / periods_per_year, 1 / periods_per_year)
     annual_return = (
@@ -29,23 +27,15 @@ def performance_metrics(
         else float("nan")
     )
     annual_vol = (
-        returns.std(ddof=1) * np.sqrt(periods_per_year)
-        if len(returns) > 1
-        else float("nan")
+        returns.std(ddof=1) * np.sqrt(periods_per_year) if len(returns) > 1 else float("nan")
     )
-    sharpe = (
-        annual_return / annual_vol
-        if annual_vol and np.isfinite(annual_vol)
-        else float("nan")
-    )
+    sharpe = annual_return / annual_vol if annual_vol and np.isfinite(annual_vol) else float("nan")
     drawdown = series / series.cummax() - 1
     turnover = 0.0
     fill_ratio = float("nan")
     if fills is not None and not fills.empty:
         turnover = float(
-            fills["notional"].sum()
-            / max(series.mean(), 1e-12)
-            / max(years, 1 / periods_per_year)
+            fills["notional"].sum() / max(series.mean(), 1e-12) / max(years, 1 / periods_per_year)
         )
         requested = fills["requested_shares"].abs().sum()
         filled = fills["filled_shares"].abs().sum()
@@ -82,11 +72,7 @@ def block_bootstrap_metric_interval(
     if metric == "mean":
         stats = sampled.mean(axis=1)
     elif metric == "sharpe":
-        stats = (
-            sampled.mean(axis=1)
-            / np.maximum(sampled.std(axis=1, ddof=1), 1e-12)
-            * np.sqrt(252)
-        )
+        stats = sampled.mean(axis=1) / np.maximum(sampled.std(axis=1, ddof=1), 1e-12) * np.sqrt(252)
     else:
         raise ValueError(f"unknown bootstrap metric: {metric}")
     return tuple(float(value) for value in np.quantile(stats, [0.025, 0.975]))
@@ -109,9 +95,7 @@ def one_sided_normal_p_value(scores: list[float]) -> float:
     return float(0.5 * erfc(statistic / sqrt(2)))
 
 
-def benjamini_hochberg(
-    p_values: list[float], fdr_q: float
-) -> tuple[list[float], list[bool]]:
+def benjamini_hochberg(p_values: list[float], fdr_q: float) -> tuple[list[float], list[bool]]:
     if not 0 < fdr_q <= 1:
         raise ValueError("fdr_q must be in (0, 1]")
     count = len(p_values)

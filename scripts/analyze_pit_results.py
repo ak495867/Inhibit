@@ -29,11 +29,7 @@ def bootstrap_distribution(
     offsets = np.arange(block_length)
     indices = (starts[:, :, None] + offsets[None, None, :]) % len(values)
     sampled = values[indices].reshape(n_bootstrap, -1)[:, : len(values)]
-    return (
-        sampled.mean(axis=1)
-        / np.maximum(sampled.std(axis=1, ddof=1), 1e-12)
-        * np.sqrt(252)
-    )
+    return sampled.mean(axis=1) / np.maximum(sampled.std(axis=1, ddof=1), 1e-12) * np.sqrt(252)
 
 
 def rank_ic(candidate: pd.Series, label: pd.Series) -> float:
@@ -44,9 +40,7 @@ def rank_ic(candidate: pd.Series, label: pd.Series) -> float:
     return float(value) if pd.notna(value) else float("nan")
 
 
-def prepare_frame(
-    input_path: Path, config_path: Path
-) -> tuple[pd.DataFrame, object, list[object]]:
+def prepare_frame(input_path: Path, config_path: Path) -> tuple[pd.DataFrame, object, list[object]]:
     config = load_config(config_path)
     prices = DataLoader().load(input_path)
     issues = validate_price_integrity(prices)
@@ -123,12 +117,8 @@ def main() -> None:
         linewidth=2,
         label="Observed Sharpe",
     )
-    plt.axvline(
-        bootstrap_low, color="#222222", linestyle="--", label="2.5% block-bootstrap"
-    )
-    plt.axvline(
-        bootstrap_high, color="#222222", linestyle="--", label="97.5% block-bootstrap"
-    )
+    plt.axvline(bootstrap_low, color="#222222", linestyle="--", label="2.5% block-bootstrap")
+    plt.axvline(bootstrap_high, color="#222222", linestyle="--", label="97.5% block-bootstrap")
     plt.title("PIT S&P 500 Block-Bootstrap Sharpe Distribution")
     plt.xlabel("Annualized Sharpe")
     plt.ylabel("Bootstrap draw count")
@@ -141,9 +131,7 @@ def main() -> None:
     top = candidates.sort_values(["mean_rank_ic", "stability"], ascending=False).head(5)
     curve_rows: list[dict[str, object]] = []
     for _, candidate in top.iterrows():
-        values = AdaptiveFactorDiscovery._evaluate_expression(
-            labeled, candidate["expression"]
-        )
+        values = AdaptiveFactorDiscovery._evaluate_expression(labeled, candidate["expression"])
         for split in splits:
             test_values = values.iloc[split.test]
             test_label = labeled.iloc[split.test]["forward_return"]

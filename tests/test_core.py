@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from inhibit.backtest.execution import ExecutionSimulator
+from inhibit.cli.main import main
 from inhibit.config import ExecutionConfig, PortfolioConfig
 from inhibit.data.schema import DataContractError, normalize_prices
 from inhibit.features.engine import FeatureEngine, LeakageError
@@ -39,10 +40,56 @@ def test_schema_rejects_missing_columns() -> None:
         normalize_prices(pd.DataFrame({"symbol": ["AAA"], "timestamp": ["2020-01-01"]}))
 
 
-def test_feature_engine_lags_and_audits() -> None:
-    frame, audit = FeatureEngine().build(
-        price_fixture(), ["reversal_1"], information_buffer_bars=1
+def test_schema_rejects_non_finite_market_values() -> None:
+    frame = pd.DataFrame(
+        {
+            "symbol": ["AAA"],
+            "timestamp": ["2020-01-01"],
+            "open": [1.0],
+            "high": [float("inf")],
+            "low": [1.0],
+            "close": [1.0],
+            "volume": [1.0],
+        }
     )
+    with pytest.raises(DataContractError, match="finite"):
+        normalize_prices(frame)
+
+
+def test_validate_config_command_accepts_valid_yaml(tmp_path, capsys) -> None:
+    config_path = tmp_path / "config.yml"
+    config_path.write_text("features:\n  include: [momentum_12_1]\n")
+    assert main(["validate-config", "--config", str(config_path)]) == 0
+    assert '"valid": true' in capsys.readouterr().out
+
+
+def test_yfinance_export_creates_parent_directories(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "inhibit.cli.main.load_yfinance",
+        lambda *args, **kwargs: pd.DataFrame({"symbol": ["AAA"]}),
+    )
+    output = tmp_path / "nested" / "data.csv"
+    assert (
+        main(
+            [
+                "fetch-yfinance",
+                "--symbols",
+                "AAA",
+                "--start",
+                "2024-01-01",
+                "--end",
+                "2024-02-01",
+                "--output",
+                str(output),
+            ]
+        )
+        == 0
+    )
+    assert output.exists()
+
+
+def test_feature_engine_lags_and_audits() -> None:
+    frame, audit = FeatureEngine().build(price_fixture(), ["reversal_1"], information_buffer_bars=1)
     assert audit.passed
     assert frame["reversal_1"].iloc[:3].isna().all()
 
@@ -55,9 +102,7 @@ def test_feature_engine_rejects_future_availability() -> None:
 
 
 def test_walk_forward_splits_are_disjoint() -> None:
-    timestamps = pd.Series(
-        pd.date_range("2020-01-01", periods=1000, freq="B", tz="UTC")
-    )
+    timestamps = pd.Series(pd.date_range("2020-01-01", periods=1000, freq="B", tz="UTC"))
     splits = walk_forward_splits(timestamps, 500, 100, 100, 100, 20, 10)
     assert len(splits) == 3
     for split in splits:
@@ -81,7 +126,5 @@ def test_execution_models_partial_fills_and_costs() -> None:
         seed=1,
     ).run(bars, targets)
     assert not result.equity.empty
-    assert (
-        result.fills["filled_shares"].iloc[0] < result.fills["requested_shares"].iloc[0]
-    )
+    assert result.fills["filled_shares"].iloc[0] < result.fills["requested_shares"].iloc[0]
     assert result.fills["total_cost"].iloc[0] > 0

@@ -21,9 +21,7 @@ class DataLoader:
             frame = self._read_json(file_path)
         else:
             raise DataContractError(f"unsupported input format: {suffix}")
-        return normalize_prices(
-            frame, source=str(file_path), publication_lag=publication_lag
-        )
+        return normalize_prices(frame, source=str(file_path), publication_lag=publication_lag)
 
     @staticmethod
     def _read_json(path: Path) -> pd.DataFrame:
@@ -45,9 +43,7 @@ def load_yfinance(
     try:
         import yfinance as yf
     except ImportError as exc:
-        raise DataContractError(
-            "install inhibit[data] to use the yfinance adapter"
-        ) from exc
+        raise DataContractError("install inhibit[data] to use the yfinance adapter") from exc
     if not symbols:
         raise DataContractError("at least one symbol is required")
     raw = yf.download(

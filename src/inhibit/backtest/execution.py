@@ -49,9 +49,7 @@ class ExecutionSimulator:
             raise ValueError(f"execution bars missing columns: {sorted(missing)}")
         price_data = bars.sort_values(["timestamp", "symbol"]).copy()
         price_data["timestamp"] = pd.to_datetime(price_data["timestamp"], utc=True)
-        price_data["bar_return"] = price_data.groupby("symbol", sort=False)[
-            "close"
-        ].pct_change()
+        price_data["bar_return"] = price_data.groupby("symbol", sort=False)["close"].pct_change()
         price_data["realized_volatility"] = price_data.groupby("symbol", sort=False)[
             "bar_return"
         ].transform(lambda values: values.rolling(21, min_periods=5).std())
@@ -65,9 +63,7 @@ class ExecutionSimulator:
         previous_equity = initial_cash
         for timestamp, day in price_data.groupby("timestamp", sort=True):
             marks = day.set_index("symbol")
-            desired = self._desired_positions(
-                timestamp, marks, weights, positions, cash
-            )
+            desired = self._desired_positions(timestamp, marks, weights, positions, cash)
             for symbol, requested in desired.items():
                 if symbol not in marks.index:
                     continue
@@ -88,9 +84,7 @@ class ExecutionSimulator:
                     )
                     order_ages.pop(symbol, None)
                 else:
-                    fill = self._fill_order(
-                        timestamp, symbol, requested, marks.loc[symbol]
-                    )
+                    fill = self._fill_order(timestamp, symbol, requested, marks.loc[symbol])
                     if (
                         abs(fill.filled_shares) >= abs(requested)
                         or fill.reason == "probabilistic_rejection"
@@ -129,33 +123,21 @@ class ExecutionSimulator:
         fills = pd.DataFrame(fill_records)
         equity_frame = pd.DataFrame(equity_records)
         final_positions = pd.DataFrame(
-            [
-                {"symbol": symbol, "shares": shares}
-                for symbol, shares in positions.items()
-            ]
+            [{"symbol": symbol, "shares": shares} for symbol, shares in positions.items()]
         )
         return ExecutionResult(fills, equity_frame, final_positions)
 
-    def _delay_targets(
-        self, target_weights: pd.DataFrame, times: list[pd.Timestamp]
-    ) -> pd.Series:
+    def _delay_targets(self, target_weights: pd.DataFrame, times: list[pd.Timestamp]) -> pd.Series:
         if target_weights.empty:
             return pd.Series(dtype=float)
         target = target_weights.copy()
         target["timestamp"] = pd.to_datetime(target["timestamp"], utc=True)
         delay = max(self._delay_bars(), 0)
         mapping = {
-            time: times[min(index + delay, len(times) - 1)]
-            for index, time in enumerate(times)
+            time: times[min(index + delay, len(times) - 1)] for index, time in enumerate(times)
         }
-        target["timestamp"] = (
-            target["timestamp"].map(mapping).fillna(target["timestamp"])
-        )
-        return (
-            target.set_index(["timestamp", "symbol"])["weight"]
-            .groupby(level=[0, 1])
-            .last()
-        )
+        target["timestamp"] = target["timestamp"].map(mapping).fillna(target["timestamp"])
+        return target.set_index(["timestamp", "symbol"])["weight"].groupby(level=[0, 1]).last()
 
     def _delay_bars(self) -> int:
         return int(self.execution_delay_bars)
@@ -185,9 +167,7 @@ class ExecutionSimulator:
                     self.portfolio.max_position_weight,
                 )
             )
-            target_shares = (
-                target_weight * current_equity / float(marks.loc[symbol, "close"])
-            )
+            target_shares = target_weight * current_equity / float(marks.loc[symbol, "close"])
             delta = target_shares - positions.get(symbol, 0.0)
             if (
                 abs(delta * float(marks.loc[symbol, "close"]) / current_equity)
@@ -195,8 +175,7 @@ class ExecutionSimulator:
             ):
                 deltas[symbol] = delta
         gross_notional = sum(
-            abs(delta * float(marks.loc[symbol, "close"]))
-            for symbol, delta in deltas.items()
+            abs(delta * float(marks.loc[symbol, "close"])) for symbol, delta in deltas.items()
         )
         cap = self.portfolio.max_turnover * current_equity
         if gross_notional > cap > 0:
@@ -204,9 +183,7 @@ class ExecutionSimulator:
             deltas = {symbol: delta * scale for symbol, delta in deltas.items()}
         return deltas
 
-    def _borrow_fee(
-        self, positions: dict[str, float], marks: pd.DataFrame, equity: float
-    ) -> float:
+    def _borrow_fee(self, positions: dict[str, float], marks: pd.DataFrame, equity: float) -> float:
         short_notional = sum(
             abs(shares * float(marks.loc[symbol, "close"]))
             for symbol, shares in positions.items()

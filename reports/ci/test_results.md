@@ -12,7 +12,7 @@ This report records the local checks completed for the Inhibit release containin
 | `inhibit verify --run runs/real_sp500_pit --input data/sp500_yfinance_2015_2026_clean.csv` | Passed |
 | `inhibit verify --run runs/real_sp500_pit_wide --input data/sp500_yfinance_2015_2026_clean.csv` | Passed |
 
-The GitHub workflow repeats formatting, linting, and tests on Python 3.11 and 3.12. Each matrix leg publishes a JUnit XML test-results artifact, including on failure when a report file is produced.
+The current GitHub workflow runs dependency checks, formatting, linting, tests, and installed-CLI smoke checks on Python 3.11, 3.12, and 3.13. Each matrix leg publishes a JUnit XML test-results artifact, including on failure when a report file is produced. The point-in-time metrics below remain a historical snapshot from the release noted above.
 
 ## Point-in-time validation snapshot
 
