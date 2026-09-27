@@ -11,7 +11,9 @@ def analyze(candidates_path: Path, manifest_path: Path, output_path: Path) -> No
     manifest = pd.read_json(manifest_path, typ="series")
     baseline = float(manifest["baseline_rank_ic"])
     top = (
-        candidates.sort_values(["mean_rank_ic", "stability", "median_rank_ic"], ascending=False)
+        candidates.sort_values(
+            ["mean_rank_ic", "stability", "median_rank_ic"], ascending=False
+        )
         .head(5)
         .copy()
     )

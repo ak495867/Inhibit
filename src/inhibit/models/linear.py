@@ -63,7 +63,9 @@ class CrossSectionalRidge:
         max_weight: float,
     ) -> pd.DataFrame:
         rows: list[dict[str, object]] = []
-        for timestamp, group in frame.assign(prediction=prediction).groupby("timestamp", sort=True):
+        for timestamp, group in frame.assign(prediction=prediction).groupby(
+            "timestamp", sort=True
+        ):
             group = group.dropna(subset=["prediction"])
             group = group.sort_values("prediction", ascending=False).head(max_positions)
             if group.empty:

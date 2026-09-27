@@ -58,10 +58,14 @@ def walk_forward_splits(
             WalkForwardSplit(
                 split_id=split_id,
                 train=np.flatnonzero(raw_timestamps.isin(train_times).to_numpy()),
-                validation=np.flatnonzero(raw_timestamps.isin(validation_times).to_numpy()),
+                validation=np.flatnonzero(
+                    raw_timestamps.isin(validation_times).to_numpy()
+                ),
                 test=np.flatnonzero(raw_timestamps.isin(test_times).to_numpy()),
                 purged=np.flatnonzero(raw_timestamps.isin(purged_times).to_numpy()),
-                embargoed=np.flatnonzero(raw_timestamps.isin(embargoed_times).to_numpy()),
+                embargoed=np.flatnonzero(
+                    raw_timestamps.isin(embargoed_times).to_numpy()
+                ),
             )
         )
         split_id += 1

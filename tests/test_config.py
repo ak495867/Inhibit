@@ -15,7 +15,10 @@ from inhibit.config import (
 @pytest.mark.parametrize(
     ("config", "message"),
     [
-        (InhibitConfig(features=FeatureConfig(include=("momentum", "momentum"))), "duplicate"),
+        (
+            InhibitConfig(features=FeatureConfig(include=("momentum", "momentum"))),
+            "duplicate",
+        ),
         (
             InhibitConfig(
                 features=FeatureConfig(include=("momentum",)),

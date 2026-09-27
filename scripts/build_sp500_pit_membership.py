@@ -14,7 +14,9 @@ HISTORY_URL = "https://en.wikipedia.org/wiki/Historical_components_of_the_S%26P_
 
 
 def read_table(url: str) -> pd.DataFrame:
-    response = requests.get(url, headers={"User-Agent": "Mozilla/5.0 Inhibit research"}, timeout=30)
+    response = requests.get(
+        url, headers={"User-Agent": "Mozilla/5.0 Inhibit research"}, timeout=30
+    )
     response.raise_for_status()
     return pd.read_html(StringIO(response.text))[0]
 
@@ -40,13 +42,17 @@ def build_intervals(start: pd.Timestamp, end: pd.Timestamp) -> pd.DataFrame:
         "reason",
         "refs",
     ]
-    history["effective_date"] = pd.to_datetime(history["effective_date"], errors="coerce", utc=True)
+    history["effective_date"] = pd.to_datetime(
+        history["effective_date"], errors="coerce", utc=True
+    )
     history = history.dropna(subset=["effective_date"])
     history["added"] = history["added_ticker"].map(clean_ticker)
     history["removed"] = history["removed_ticker"].map(clean_ticker)
     history = history[history["effective_date"] <= end]
     dates = sorted(history["effective_date"].dt.normalize().unique(), reverse=True)
-    states: list[tuple[pd.Timestamp, set[str]]] = [(end.normalize(), set(current_symbols))]
+    states: list[tuple[pd.Timestamp, set[str]]] = [
+        (end.normalize(), set(current_symbols))
+    ]
     for date in dates:
         date_rows = history.loc[history["effective_date"].dt.normalize() == date]
         added = {value for value in date_rows["added"] if value}
@@ -69,7 +75,9 @@ def build_intervals(start: pd.Timestamp, end: pd.Timestamp) -> pd.DataFrame:
                     "source": HISTORY_URL,
                 }
             )
-    return pd.DataFrame(records).drop_duplicates(["symbol", "effective_from", "effective_to"])
+    return pd.DataFrame(records).drop_duplicates(
+        ["symbol", "effective_from", "effective_to"]
+    )
 
 
 if __name__ == "__main__":

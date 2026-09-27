@@ -45,10 +45,14 @@ def normalize_prices(
     for column in ("open", "high", "low", "close", "volume"):
         result[column] = pd.to_numeric(result[column], errors="coerce")
     if result[list(PRICE_COLUMNS)].isna().any().any():
-        raise DataContractError("required price columns contain null or non-numeric values")
+        raise DataContractError(
+            "required price columns contain null or non-numeric values"
+        )
     if any(
         not isfinite(value)
-        for value in result[["open", "high", "low", "close", "volume"]].to_numpy().ravel()
+        for value in result[["open", "high", "low", "close", "volume"]]
+        .to_numpy()
+        .ravel()
     ):
         raise DataContractError("price and volume columns must contain finite values")
     if (result[["open", "high", "low", "close"]] <= 0).any().any():
@@ -89,7 +93,9 @@ def validate_price_integrity(frame: pd.DataFrame) -> list[str]:
         issues.append(f"{duplicate_count} duplicate symbol/timestamp rows")
     availability_violations = int((frame["available_at"] < frame["timestamp"]).sum())
     if availability_violations:
-        issues.append(f"{availability_violations} availability timestamps precede events")
+        issues.append(
+            f"{availability_violations} availability timestamps precede events"
+        )
     return issues
 
 

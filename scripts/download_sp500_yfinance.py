@@ -129,7 +129,9 @@ def main() -> None:
     if args.batch_size < 1:
         raise ValueError("batch-size must be positive")
     universe = load_symbols()
-    frame, failed = download(universe["Symbol"].tolist(), args.start, args.end, args.batch_size)
+    frame, failed = download(
+        universe["Symbol"].tolist(), args.start, args.end, args.batch_size
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.universe_output.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(args.output, index=False)

@@ -98,7 +98,9 @@ class AdaptiveFactorDiscovery:
                 held_out_usable = held_out[["candidate", label]].dropna()
                 if len(held_out_usable) >= 5:
                     test_rank_ic = (
-                        held_out_usable["candidate"].rank().corr(held_out_usable[label].rank())
+                        held_out_usable["candidate"]
+                        .rank()
+                        .corr(held_out_usable[label].rank())
                     )
                     if pd.notna(test_rank_ic):
                         test_scores.append(float(test_rank_ic))
@@ -111,14 +113,22 @@ class AdaptiveFactorDiscovery:
                     name=name,
                     expression=expression,
                     complexity=complexity,
-                    mean_rank_ic=float(np.mean(scores) - self.complexity_penalty * complexity),
+                    mean_rank_ic=float(
+                        np.mean(scores) - self.complexity_penalty * complexity
+                    ),
                     median_rank_ic=float(np.median(scores)),
                     stability=float(positive / len(scores)),
                     observations=observations,
-                    mean_test_rank_ic=(float(np.mean(test_scores)) if test_scores else 0.0),
-                    median_test_rank_ic=(float(np.median(test_scores)) if test_scores else 0.0),
+                    mean_test_rank_ic=(
+                        float(np.mean(test_scores)) if test_scores else 0.0
+                    ),
+                    median_test_rank_ic=(
+                        float(np.median(test_scores)) if test_scores else 0.0
+                    ),
                     test_stability=(
-                        float(sum(score > 0 for score in test_scores) / len(test_scores))
+                        float(
+                            sum(score > 0 for score in test_scores) / len(test_scores)
+                        )
                         if test_scores
                         else 0.0
                     ),
@@ -147,7 +157,9 @@ class AdaptiveFactorDiscovery:
                 testing,
                 item.selected,
             )
-            for item, q_value, testing in zip(evaluated, q_values, testing_pass, strict=True)
+            for item, q_value, testing in zip(
+                evaluated, q_values, testing_pass, strict=True
+            )
         ]
         evaluated.sort(
             key=lambda item: (item.mean_rank_ic, item.stability, item.median_rank_ic),
@@ -235,7 +247,9 @@ class AdaptiveFactorDiscovery:
         return pd.Series(result, index=frame.index).replace([np.inf, -np.inf], np.nan)
 
     @staticmethod
-    def _evaluate_node(node: ast.AST, values: dict[str, pd.Series | float]) -> pd.Series | float:
+    def _evaluate_node(
+        node: ast.AST, values: dict[str, pd.Series | float]
+    ) -> pd.Series | float:
         if isinstance(node, ast.Name) and node.id in values:
             return values[node.id]
         if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
@@ -262,7 +276,9 @@ class AdaptiveFactorDiscovery:
             and isinstance(node.func, ast.Name)
             and len(node.args) in {1, 2}
         ):
-            args = [AdaptiveFactorDiscovery._evaluate_node(arg, values) for arg in node.args]
+            args = [
+                AdaptiveFactorDiscovery._evaluate_node(arg, values) for arg in node.args
+            ]
             if node.func.id == "abs" and len(args) == 1:
                 return np.abs(args[0])
             if node.func.id == "square" and len(args) == 1:
@@ -276,13 +292,17 @@ class AdaptiveFactorDiscovery:
         raise ValueError(f"unsupported symbolic expression: {ast.unparse(node)}")
 
     @staticmethod
-    def _safe_div(left: pd.Series | float, right: pd.Series | float) -> pd.Series | float:
+    def _safe_div(
+        left: pd.Series | float, right: pd.Series | float
+    ) -> pd.Series | float:
         if isinstance(right, pd.Series):
             return left / right.replace(0, np.nan)
         return left / right if right != 0 else np.nan
 
     @staticmethod
-    def _baseline_rank_ic(frame: pd.DataFrame, splits: list[WalkForwardSplit], label: str) -> float:
+    def _baseline_rank_ic(
+        frame: pd.DataFrame, splits: list[WalkForwardSplit], label: str
+    ) -> float:
         scores: list[float] = []
         candidate = frame.get("momentum_12_1")
         if candidate is None:
